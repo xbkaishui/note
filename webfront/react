@@ -41,6 +41,8 @@
 * [官方文档](https://github.com/redux-saga/redux-saga)
 * [doc](http://leonshi.com/redux-saga-in-chinese/docs/introduction/BeginnerTutorial.html)
 
+## reference
+* [CQRS](https://martinfowler.com/bliki/CQRS.html)
 
 
 ## examples
