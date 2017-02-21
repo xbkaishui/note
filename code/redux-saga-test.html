@@ -1,0 +1,163 @@
+<html>
+<head>
+<style>
+.indicator {
+  font-size: 36px;
+  height: 50px;
+  margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+  <script src="https://facebook.github.io/react/js/jsfiddle-integration-babel.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.13.1/lodash.min.js"></script>
+  <div id="container">
+      <!-- This element's contents will be replaced with your component. -->
+  </div>
+  <script>
+  const {Provider, connect} = ReactRedux;
+  const {createStore, applyMiddleware} = Redux;
+  const createSagaMiddleware = ReduxSaga.default;
+  const {takeEvery} = ReduxSaga;
+  const {take, put, call} = ReduxSaga.effects;
+
+  //============
+  // Reducer
+  //============
+  const defaultState = {
+      isLoading: false,
+      lastTimestamp: undefined,
+      count: 0,
+  };
+  const reducer = (state = defaultState, action) => {
+      console.info(action.type);
+      switch (action.type) {
+          case 'REQUEST_LOAD':
+              return {
+                  ...state,
+                  isLoading: true,
+              }
+          case 'RECEIVE_LOAD':
+              return {
+                  ...state,
+                  ...action.payload,
+                  count: state.count + 1,
+                  isLoading: false,
+              }
+          default:
+              return state;
+      }
+  };
+
+  //============
+  // Actions
+  //============
+  function requestLoad() {
+  	console.info('requestLoad() is executed');
+      return {
+          type: 'REQUEST_LOAD',
+      };
+  }
+
+  function receiveLoad(timestamp) {
+      return {
+          type: 'RECEIVE_LOAD',
+          payload: {
+              lastTimestamp: timestamp,
+          }
+      }
+  }
+
+  // Side Effect Action Function (REMOVED!!)
+  /*
+  function startLoad() {
+      return (dispatch, getState) => {
+          dispatch(requestLoad()); // Sub action
+          loadApi()
+          .then(timestamp => dispatch(receiveLoad(timestamp))); // Sub action
+      }
+  }
+  */
+
+  //============
+  // APIs
+  //============
+  function loadApi() {
+      return new Promise((resolve, reject) => {
+          setTimeout(() => {
+              resolve(new Date().getTime());
+          }, 3000);
+      });
+  }
+
+  //================
+  // Saga (Monitor)
+  //================
+  function* watchLoadRequest() {
+      yield* takeEvery('REQUEST_LOAD', loadFlow);
+  }
+  function* loadFlow() {
+  	const timestamp = yield call(loadApi);
+      yield put(receiveLoad(timestamp));
+  }
+
+  //============
+  // Components
+  //============
+  const mapStateToProps = (state = {}) => {
+      return {...state};
+  };
+  let Container = connect(mapStateToProps)(React.createClass({
+      render: function () {
+          const {count, dispatch, isLoading, lastTimestamp} = this.props;
+          return (
+              <div>
+                  <div className="indicator">
+                  {(isLoading) && (
+                      <i className="fs fs-spinner fs-spin"/>
+                  )}
+                  </div>
+                  <button
+                      children="Load for 3 secs"
+                      className="st-btn st-btn-solid st-btn-success st-btn-sm"
+                      onClick={() => dispatch(requestLoad())}
+                      disabled={(isLoading)}/>
+                  {' '}
+                  <button
+                      children="Cancel Loading"
+                      className="st-btn st-btn-warning st-btn-sm"
+                      disabled={(!isLoading)}/>
+                  {' '}
+                  {(lastTimestamp) && (
+                      <span>{lastTimestamp}</span>
+                  )}
+                  {(count) && (
+                      <span>, {count}</span>
+                  )}
+              </div>
+          );
+      }
+  }));
+
+  //============
+  // Store
+  //============
+  const sagaMiddleware = createSagaMiddleware();
+  const store = createStore(
+      reducer,
+  	applyMiddleware(sagaMiddleware)
+  );
+  sagaMiddleware.run(watchLoadRequest);
+
+  //============
+  // Output
+  //============
+  ReactDOM.render(
+      <Provider store={store}>
+          <Container/>
+      </Provider>,
+      document.getElementById('container')
+  );
+  </script>
+</body>
+</html>
