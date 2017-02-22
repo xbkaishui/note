@@ -26,7 +26,8 @@ VM.check_commercial_features
 VM.unlock_commercial_features
 ManagementAgent.stop
 ManagementAgent.start_local
-ManagementAgent.start
+ManagementAgent..md
+
 Thread.print
 GC.class_stats
 GC.class_histogram
@@ -54,4 +55,4 @@ Create a heap histogram
 
 The preferred way to create a heap histogram is
 
-jcmd <pid> GC.class_histogram filename=Myheaphistogram
+jcmd <pid> GC.class_histogram filename=Myheaphistogram  
